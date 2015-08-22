@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript">
+
+        GetNowPlaying();
+        function GetNowPlaying() {
+
+            var data = '{ "organizationId": "1", "date": null, "matches": null, "iddaa": false }';
+            $.ajax({
+                type: "POST",
+                url: "http://www.ligtv.com.tr/_AjaxServices/LiveScoreService.aspx/NowPlaying",
+                data: data,
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                headers: {
+                    "Accept": "application/json, text/javascript, */*; q=0.01",
+                    "Accept-Encoding": "gzip, deflate",
+                    "Accept-Language": "tr-TR,tr;q=0.8,en-US;q=0.6,en;q=0.4",
+                    "Connection": "keep-alive",
+                    "Content-Length": "63",
+                    "Content-Type": "application/json; charset=UTF-8",
+                    "Cookie": "__gfp_64b=L8SFGX1.E8Jb.un3h.c0cLPzinplOd670FPop6vbRan.j7; octowebstatid=mpqujf3coab2xff4zyn; ASP.NET_SessionId=drug3rckicvcyj0ll2ldbrkw; liveScore_selectedOrganization=1; __utmt=1; __utma=232859139.1170288475.1416642133.1422214323.1422216402.6; __utmb=232859139.1.10.1422216402; __utmc=232859139; __utmz=232859139.1422216402.6.5.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); _ga=GA1.3.1170288475.1416642133; _gat=1; _ym_visorc_24958426=b",
+                    "Host": "www.ligtv.com.tr",
+                    "Origin": "http://www.google.com",
+                    "Referer": "http://www.ligtv.com.tr/canli-skor",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                success: function (msg) {
+                    var result = msg.d;
+                    divNowPlaying.empty();
+                    if (result == null || result.length < 1) {
+                        divNowPlaying.html("<span class='livescore_message'>Günün devam eden maçlarına ait bilgi bulunmamaktadır.</span>");
+                        return;
+                    }
+
+                    for (var i = 0; i < result.length; i++) {
+                        var events = result[i].Events;
+                        if (events == null || events.length < 1)
+                            continue;
+                        for (var j = 0; j < events.length; j++) {
+                            if ((events[j].Type == 0 || events[j].Type == 6) && events[j].Minute >= result[i].Minute - 1) {
+                                // Animasyon Bitiş zamanı
+                                var expire = new Date();
+                                expire.setSeconds(expire.getSeconds() + effectTimeout);
+                                console.log(events[j]);
+                                var effect = new EffectItem();
+                                effect.Event = events[j];
+                                effect.Expire = expire.getTime();
+                                effect.IsExecuted = false;
+                                AddEffectItem(effect);
+                            }
+                        }
+                    }
+                    matchesNowPlaying = result;
+                    UpdateNowPlayingUI();
+                }
+            });
+        }
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>
