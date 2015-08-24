@@ -105,7 +105,7 @@ namespace apiTest.Controllers
             List<Teams> list = new List<Teams>();
 
             WebClient client = new WebClient();
-            string teamsPage = client.DownloadString("http://www.mgm.gov.tr/tahmin/il-ve-ilceler.aspx?m=ALANYA");
+            string teamsPage = client.DownloadString("http://www.tff.org/Default.aspx?pageID=198");
 
             int teamCount = 0;
             string teamTdlist = "";
@@ -499,7 +499,7 @@ namespace apiTest.Controllers
             {
                 url = "http://m.futbolingo.com/canli-sonuclar";
             }
-            else if (id == 0)
+            else if (id == 0)//Testing to html scrap
             {
                 url = "http://m.futbolingo.com/mac-sonuclari/2015/01/24";
             }
@@ -526,7 +526,7 @@ namespace apiTest.Controllers
                 int superLigStart = maclar.IndexOf("Türkiye - Spor Toto SüperLig", 0);
                 if (superLigStart != -1)
                 {
-                    //eger başka maç varsa
+                    //if there is any other game
                     try
                     {
                         int superLigEnd = maclar.IndexOf("<div class='title'>", superLigStart);
@@ -766,16 +766,6 @@ namespace apiTest.Controllers
 
                                 lastInputInx = deplasmanEnd;
                             }
-
-                            //int ilkYariStart = scoreDiv[i].IndexOf("class='tname_a'>", lastInputInx);
-                            //if (ilkYariStart != -1)
-                            //{
-                            //    int ilkYariEnd = scoreDiv[i].IndexOf("</div>", ilkYariStart);
-                            //    int ilkYariLen = ilkYariEnd - ilkYariStart;
-                            //    skor.FirstHalf = scoreDiv[i].Substring(ilkYariStart + 15, ilkYariLen - 15);
-                            //    lastInputInx = ilkYariEnd;
-                            //}
-
                             list.Add(skor);
                         }
 
@@ -1022,27 +1012,11 @@ namespace apiTest.Controllers
 
                                 lastInputInx = deplasmanEnd;
                             }
-
-                            //int ilkYariStart = scoreDiv[i].IndexOf("class='fscore'>", lastInputInx);
-                            //if (ilkYariStart != -1)
-                            //{
-                            //    int ilkYariEnd = scoreDiv[i].IndexOf("</div>", ilkYariStart);
-                            //    int ilkYariLen = ilkYariEnd - ilkYariStart;
-                            //    skor.FirstHalf = scoreDiv[i].Substring(ilkYariStart + 15, ilkYariLen - 15);
-                            //    lastInputInx = ilkYariEnd;
-                            //}
-
                             list.Add(skor);
                         }
                     }
                 }
             }
-
-
-
-
-
-
             return Json(list, JsonRequestBehavior.AllowGet);
         }
     }
