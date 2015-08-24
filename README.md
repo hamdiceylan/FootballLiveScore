@@ -24,8 +24,9 @@ http://api.webron.social/TFF/GetFixture/{weekNo}
 
 when you send weekNo as a parameter api returns related week game table
 
-# hamdiceylan
+# License
+Copyright 2015 Hamdi Ceylan
 
-www.hamdiceylan.com
+Licensed under the MIT License.
 
 
