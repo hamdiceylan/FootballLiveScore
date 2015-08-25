@@ -4,6 +4,8 @@ Live Score, Scorer Players, All Year Fixture and Updated Point Table
 
 API collects data from www.tff.org and www.futbolingo.com with html scrapping method.
 
+This is and Asp.Net MVC project.
+
 # Sample Requests
 
 
