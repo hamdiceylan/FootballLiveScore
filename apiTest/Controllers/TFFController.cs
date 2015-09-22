@@ -494,7 +494,7 @@ namespace apiTest.Controllers
         public JsonResult LiveScore(int id)
         {
             string url = "";
-            
+
             if (id == 1)
             {
                 url = "http://m.futbolingo.com/canli-sonuclar";
@@ -583,8 +583,8 @@ namespace apiTest.Controllers
                                 if (skor.HomeTeam.Contains("img"))
                                 {
                                     int startImg = skor.HomeTeam.IndexOf("<img");
-                                    startImg = skor.HomeTeam.IndexOf(">",startImg);
-                                    skor.HomeTeam = skor.HomeTeam.Substring(startImg+1, skor.HomeTeam.Length-1-startImg);
+                                    startImg = skor.HomeTeam.IndexOf(">", startImg);
+                                    skor.HomeTeam = skor.HomeTeam.Substring(startImg + 1, skor.HomeTeam.Length - 1 - startImg);
                                 }
 
                                 if (skor.HomeTeam.Contains("Kayseri"))
@@ -1017,6 +1017,97 @@ namespace apiTest.Controllers
                     }
                 }
             }
+            return Json(list, JsonRequestBehavior.AllowGet);
+        }
+
+        //iddaaTahmin sonuçları
+        [HttpGet]
+        public JsonResult GetCoupouns()
+        {
+            List<Coupon> list = new List<Coupon>();
+
+            WebClient client = new WebClient();
+            client.Encoding = System.Text.Encoding.UTF8;
+            string bankoPage = client.DownloadString("https://www.iddaatahmin.com/banko-kuponlar.html");
+
+            int lastIndex = 0;
+            int kuponBoxStart = bankoPage.IndexOf("<div class=\"body score\">", lastIndex);
+
+            if (kuponBoxStart != -1)
+            {
+                int kuponBoxEnd = bankoPage.IndexOf("<fb:comments", kuponBoxStart);
+                int kuponBoxLen = kuponBoxEnd - kuponBoxStart;
+                string kuponlar = bankoPage.Substring(kuponBoxStart, kuponBoxLen);
+
+                int kuponSayisi = Regex.Matches(kuponlar, "<div class=\"body score h200\">").Count;
+                string[] couponDiv = new string[kuponSayisi];
+
+                int lastInput = 0;
+                for (int i = 0; i < couponDiv.Length; i++)
+                {
+                    List<BetMatch> matchList = new List<BetMatch>();
+                    int listStart = kuponlar.IndexOf("<div class=\"box w315", lastInput);
+                    int listEnd = kuponlar.IndexOf("<div class=\"box w315", listStart + 20);
+                    int listLen = 0;
+                    if (listEnd != -1)
+                    {
+                        listLen = listEnd - listStart;
+                    }
+                    else
+                    {
+                        listLen = kuponlar.Length - listStart;
+                    }
+                    couponDiv[i] = kuponlar.Substring(listStart, listLen - 26);
+                    lastInput = listEnd;
+                }
+                for (int c = 0; c < couponDiv.Length; c++)
+                {
+                    Coupon couponObject = new Coupon();
+                    List<BetMatch> betMatchList = new List<BetMatch>();
+                    int kuponAdilastInput = 0;
+                    int macSayisi = Regex.Matches(couponDiv[c], "<div class=\"divRow\">").Count;
+                    BetMatch match = new BetMatch();
+                    int kuponAdiStart = couponDiv[c].IndexOf("<div class=\"head greenbg\">", kuponAdilastInput);
+                    int kuponAdiEnd = couponDiv[c].IndexOf("<span class=\"shother\">", kuponAdiStart + 22);
+                    int kuponAdilistLen = kuponAdiEnd - kuponAdiStart;
+                    couponObject.Name = couponDiv[c].Substring(kuponAdiStart + 26, kuponAdilistLen - 26);
+                    for (int j = 0; j < macSayisi; j++)
+                    {
+                        int codeStart = couponDiv[c].IndexOf("<div class=\"divCol first\">", kuponAdiEnd);
+                        int codeEnd = couponDiv[c].IndexOf("</div>", codeStart + 22);
+                        int codeLen = codeEnd - codeStart;
+                        match.Code = couponDiv[c].Substring(codeStart + 26, codeLen - 26);
+
+
+                        int leaugeStart = couponDiv[c].IndexOf("<div class=\"divCol w25\">", codeEnd);
+                        int leaugeEnd = couponDiv[c].IndexOf("</div>", leaugeStart + 22);
+                        int leaugeLen = leaugeEnd - leaugeStart;
+                        match.Leauge = couponDiv[c].Substring(leaugeStart + 24, leaugeLen - 24);
+
+
+                        int teamStart = couponDiv[c].IndexOf("<div class=\"divCol w145\">", leaugeEnd);
+                        int teamEnd = couponDiv[c].IndexOf("</div>", teamStart + 22);
+                        int teamLen = teamEnd - teamStart;
+                        match.Teams = couponDiv[c].Substring(teamStart + 25, teamLen - 25);
+
+                        int scoreStart = couponDiv[c].IndexOf("class=\"msbg\"", teamEnd);
+                        int scoreEnd = couponDiv[c].IndexOf("</span>", scoreStart + 12);
+                        int scoreLen = scoreEnd - scoreStart;
+                        match.BetScore = couponDiv[c].Substring(scoreStart + 13, scoreLen - 13);
+
+
+                        int rateStart = couponDiv[c].IndexOf("divCol w25 text-center last", scoreEnd);
+                        int rateEnd = couponDiv[c].IndexOf("</div>", rateStart + 22);
+                        int rateLen = rateEnd - rateStart;
+                        match.Rate = couponDiv[c].Substring(rateStart + 29, rateLen - 29);
+                        kuponAdilastInput = scoreEnd;
+                        betMatchList.Add(match);
+                    }
+                    couponObject.Matchs = betMatchList;
+                    list.Add(couponObject);
+                }
+            }
+
             return Json(list, JsonRequestBehavior.AllowGet);
         }
     }

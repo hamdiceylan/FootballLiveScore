@@ -160,6 +160,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Code\DailyMatch.cs" />
+    <Compile Include="App_Code\BetMatch.cs" />
+    <Compile Include="App_Code\Coupon.cs" />
     <Compile Include="App_Code\LiveScore.cs" />
     <Compile Include="App_Code\Matchs.cs" />
     <Compile Include="App_Code\Scorer.cs" />
