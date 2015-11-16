@@ -1111,64 +1111,99 @@ namespace apiTest.Controllers
         public JsonResult GetGuesses()
         {
             List<Guess> list = new List<Guess>();
+            try
+            {
+                WebClient client = new WebClient();
+                client.Encoding = System.Text.Encoding.UTF8;
+                string guessPage = client.DownloadString("https://www.iddaatahmin.com/");
+                int lastIndex = 0;
+                int guessBoxStart = guessPage.IndexOf("class=\"mt10\"", lastIndex);
+                if (guessBoxStart != -1)
+                {
+                    int guessBoxEnd = guessPage.IndexOf("<div class=\"clear\"></div>", guessBoxStart);
+                    int guessBoxLen = guessBoxEnd - guessBoxStart;
+                    string guesses = guessPage.Substring(guessBoxStart, guessBoxLen);
+                    int guessCount = Regex.Matches(guesses, "itemscope=\"\" itemtype=\"").Count;
+                    string[] guessDiv = new string[guessCount];
+
+                    int lastInput = 0;
+                    for (int i = 0; i < guessDiv.Length; i++)
+                    {
+                        int listStart = guesses.IndexOf("itemtype=\"http://schema.org/BlogPosting\">", lastInput);
+                        int listEnd = guesses.IndexOf("</div></div>", listStart + 20);
+                        int listLen = 0;
+                        if (listEnd != -1)
+                        {
+                            listLen = listEnd - listStart;
+                        }
+                        else
+                        {
+                            listLen = guesses.Length - listStart;
+                        }
+                        guessDiv[i] = guesses.Substring(listStart + 41, listLen - 62);
+                        lastInput = listEnd;
+                    }
+                    int lastValue = 0;
+                    for (int i = 0; i < guessDiv.Length; i++)
+                    {
+                        Guess guess = new Guess();
+
+                        int imageStart = guessDiv[i].IndexOf("src", lastValue);
+                        int imageEnd = guessDiv[i].IndexOf("height", imageStart + 2);
+                        int imageLen = imageEnd - imageStart;
+                        guess.ImageUrl = guessDiv[i].Substring(imageStart + 5, imageLen - 7);
+                        lastValue = imageEnd;
+
+                        guess.DetailUrl = guess.ImageUrl.Replace("/thumb/215x70/tmp", "").Replace(".jpg", ".html").Replace(".png", ".html");
+                        if (guess.DetailUrl != "" || guess.DetailUrl != null)
+                        {
+                            string detailPage = client.DownloadString(guess.DetailUrl);
+                            int detailLastIndex = 0;
+                            int detailStart = detailPage.IndexOf("itemprop=\"image\"", detailLastIndex);
+                            detailStart = detailPage.IndexOf("<div>", detailStart);
+                            int detailEnd = detailPage.IndexOf("<div class=\"clear\"></div>", detailStart);
+                            int detailLen = detailEnd - detailStart;
+                            guess.Detail = detailPage.Substring(detailStart, detailLen);
+                        }
+
+                        int baslikStart = guessDiv[i].IndexOf("span>", lastValue);
+                        int baslikEnd = guessDiv[i].IndexOf("</span>", baslikStart);
+                        int baslikLen = baslikEnd - baslikStart;
+                        guess.Title = guessDiv[i].Substring(baslikStart + 5, baslikLen - 5);
+                        lastValue = baslikEnd;
+
+                        int descStart = guessDiv[i].IndexOf("itemprop=\"url\">", lastValue);
+                        int descEnd = guessDiv[i].IndexOf("</a>", descStart);
+                        int descLen = descEnd - descStart;
+                        guess.Desc = guessDiv[i].Substring(descStart + 15, descLen - 15);
+                        lastValue = 0;
+
+                        list.Add(guess);
+                    }
+                }
+                return Json(list, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(list, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public void Test()
+        {
+            List<Guess> list = new List<Guess>();
             WebClient client = new WebClient();
             client.Encoding = System.Text.Encoding.UTF8;
-            
-            string guessPage = client.DownloadString("https://www.iddaatahmin.com/");
+
+            string guessPage = client.DownloadString("https://www.iddaatahmin.com/16-kasim-pazartesi-surpriz-iddaa-kuponlari.html");
             int lastIndex = 0;
             int guessBoxStart = guessPage.IndexOf("class=\"mt10\"", lastIndex);
             if (guessBoxStart != -1)
             {
-                int guessBoxEnd = guessPage.IndexOf("<div class=\"clear\"></div>", guessBoxStart);
-                int guessBoxLen = guessBoxEnd - guessBoxStart;
-                string guesses = guessPage.Substring(guessBoxStart, guessBoxLen);
-                int guessCount = Regex.Matches(guesses, "itemscope=\"\" itemtype=\"").Count;
-                string[] guessDiv = new string[guessCount];
 
-                int lastInput = 0;
-                for (int i = 0; i < guessDiv.Length; i++)
-                {
-                    int listStart = guesses.IndexOf("itemtype=\"http://schema.org/BlogPosting\">", lastInput);
-                    int listEnd = guesses.IndexOf("</div></div>", listStart + 20);
-                    int listLen = 0;
-                    if (listEnd != -1)
-                    {
-                        listLen = listEnd - listStart;
-                    }
-                    else
-                    {
-                        listLen = guesses.Length - listStart;
-                    }
-                    guessDiv[i] = guesses.Substring(listStart+41, listLen - 62);
-                    lastInput = listEnd;
-                }
-                int lastValue = 0;
-                for (int i = 0; i < guessDiv.Length; i++)
-                {
-                    Guess guess = new Guess();
-
-                    int imageStart = guessDiv[i].IndexOf("src", lastValue);
-                    int imageEnd = guessDiv[i].IndexOf("height", imageStart + 2);
-                    int imageLen = imageEnd - imageStart;
-                    guess.ImageUrl = guessDiv[i].Substring(imageStart+5, imageLen-7);
-                    lastValue = imageEnd;
-
-                    int baslikStart = guessDiv[i].IndexOf("span>", lastValue);
-                    int baslikEnd = guessDiv[i].IndexOf("</span>", baslikStart);
-                    int baslikLen = baslikEnd - baslikStart;
-                    guess.Title = guessDiv[i].Substring(baslikStart + 5, baslikLen - 5);
-                    lastValue = baslikEnd;
-
-                    int descStart = guessDiv[i].IndexOf("itemprop=\"url\">", lastValue);
-                    int descEnd = guessDiv[i].IndexOf("</a>", descStart);
-                    int descLen = descEnd - descStart;
-                    guess.Desc = guessDiv[i].Substring(descStart + 15, descLen - 15);
-                    lastValue = 0;
-
-                    list.Add(guess);
-                }
             }
-            return Json(list, JsonRequestBehavior.AllowGet);
         }
+
     }
 }
